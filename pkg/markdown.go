@@ -3,10 +3,13 @@ package pkg
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sigs.k8s.io/yaml"
 	"strings"
 	"sync"
+
 	"time"
 
 	"github.com/justmiles/go-confluence"
@@ -16,6 +19,7 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 
 	e "github.com/Benbentwo/go-markdown2confluence/pkg/extension"
+	"github.com/Benbentwo/utils/util"
 )
 
 const (
@@ -28,18 +32,55 @@ const (
 
 // Markdown2Confluence stores the settings for each run
 type Markdown2Confluence struct {
-	Space          string
-	Title          string
-	File           string
-	Ancestor       string
-	Debug          bool
-	Since          int
-	Username       string
-	Password       string
-	Endpoint       string
-	Parent         string
-	SourceMarkdown []string
+	Space          string   `json:"space"`
+	Title          string   `json:"title"`
+	File           string   `json:"file"`
+	Ancestor       string   `json:"ancestor"`
+	Debug          bool     `json:"debug"`
+	Since          int      `json:"since"`
+	Username       string   `json:"username"`
+	Password       string   `json:"password"`
+	Endpoint       string   `json:"endpoint"`
+	Parent         string   `json:"parent"`
+	SourceMarkdown []string `json:"source"`
+
 	client         *confluence.Client
+	LoadFromConfig *[]string
+	DryRun         bool
+}
+
+const DefaultConfigFile = `./.github/confluence.yml`
+
+func (m *Markdown2Confluence) LoadConfig() error {
+	inputs := *m.LoadFromConfig
+	inputs = append(inputs, DefaultConfigFile)
+	for i := len(inputs) - 1; i >= 0; i-- {
+		fileName := inputs[i]
+
+		if fileName != "" {
+			exists, err := util.FileExists(fileName)
+			if err != nil {
+				return fmt.Errorf("Could not check if file exists %s due to %s", fileName, err)
+			}
+			if exists {
+				data, err := ioutil.ReadFile(fileName)
+				if err != nil {
+					return fmt.Errorf("Failed to load file %s due to %s", fileName, err)
+				}
+				err = yaml.Unmarshal(data, m)
+				if err != nil {
+					return fmt.Errorf("Failed to unmaxrshal YAML file %s due to %s", fileName, err)
+				}
+			}
+		}
+	}
+
+	return nil
+}
+
+func (m *Markdown2Confluence) PrintMe() {
+	fmt.Printf("\tSpace          \t%s\n\tTitle          \t%s\n\tFile           \t%s\n\tAncestor       \t%s\n\tDebug          \t%s\n\tSince          \t%s\n\tUsername       \t%s\n\tPassword       \t%s\n\tEndpoint       \t%s\n\tParent         \t%s\n\tSourceMarkdown \t%s\n\n",
+		util.ColorInfo(m.Space), util.ColorInfo(m.Title), util.ColorInfo(m.File), util.ColorInfo(m.Ancestor), util.ColorInfo(m.Debug), util.ColorInfo(m.Since), util.ColorInfo(m.Username), util.ColorInfo(m.Password), util.ColorInfo(m.Endpoint), util.ColorInfo(m.Parent), util.ColorInfo(m.SourceMarkdown))
 }
 
 // CreateClient returns a new markdown clietn

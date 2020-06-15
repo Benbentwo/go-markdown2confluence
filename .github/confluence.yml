@@ -1,0 +1,12 @@
+# Command `./build/markdown2confluence -l .github/confluence-ep.yml`
+space: GOMARKDOWN
+title: demo-confluence-yaml
+#file: README.md
+#ancestor:
+debug: false
+#since:
+username: NOT_A_USER # should be overridden by confluence-ep.yml
+endpoint: golang-markdown-to-confluence.atlassian.net/wiki
+parent: "Demo Parent"
+source:
+  - README.md
