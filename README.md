@@ -3,20 +3,20 @@ Push markdown files to Confluence Cloud
 
 ## Installation
 
-Download the [latest release](https://github.com/justmiles/go-markdown2confluence/releases) and add the binary in your local `PATH`
+Download the [latest release](https://github.com/Benbentwo/go-markdown2confluence/releases) and add the binary in your local `PATH`
 
 - Linux
 
-      curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.1.1/go-markdown2confluence_3.1.1_linux_x86_64.tar.gz
+      curl -LO https://github.com/Benbentwo/go-markdown2confluence/releases/download/v3.1.1/go-markdown2confluence_3.1.1_linux_x86_64.tar.gz
       sudo tar -xzvf go-markdown2confluence_3.1.1_linux_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
 
 - OSX
 
-      curl -LO https://github.com/justmiles/go-markdown2confluence/releases/download/v3.1.1/go-markdown2confluence_3.1.1_darwin_x86_64.tar.gz
+      curl -LO https://github.com/Benbentwo/go-markdown2confluence/releases/download/v3.1.1/go-markdown2confluence_3.1.1_darwin_x86_64.tar.gz
       sudo tar -xzvf go-markdown2confluence_3.1.1_darwin_x86_64.tar.gz -C /usr/local/bin/ markdown2confluence
 
 - Windows
-  - Download [the latest release](https://github.com/justmiles/go-markdown2confluence/releases/download/v3.1.1/go-markdown2confluence_3.1.1_windows_x86_64.tar.gz) and add to your system `PATH`
+  - Download [the latest release](https://github.com/Benbentwo/go-markdown2confluence/releases/download/v3.1.1/go-markdown2confluence_3.1.1_windows_x86_64.tar.gz) and add to your system `PATH`
 
 ## Environment Variables
 For best practice we recommend you [authenticate using an API token](https://id.atlassian.com/manage/api-tokens).

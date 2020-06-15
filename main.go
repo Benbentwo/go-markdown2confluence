@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/justmiles/go-markdown2confluence/cmd"
+	"github.com/Benbentwo/go-markdown2confluence/cmd"
 )
 
 // version of markdown2confluence. Overwritten during build

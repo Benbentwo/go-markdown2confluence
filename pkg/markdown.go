@@ -1,4 +1,4 @@
-package lib
+package pkg
 
 import (
 	"bytes"
@@ -15,7 +15,7 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 
-	e "github.com/justmiles/go-markdown2confluence/lib/extension"
+	e "github.com/Benbentwo/go-markdown2confluence/pkg/extension"
 )
 
 const (

@@ -5,7 +5,7 @@ import (
 	"github.com/yuin/goldmark/renderer"
 	"github.com/yuin/goldmark/util"
 
-	r "github.com/justmiles/go-markdown2confluence/lib/renderer"
+	r "github.com/Benbentwo/go-markdown2confluence/pkg/renderer"
 )
 
 // Confluence is a Goldmark extension that renders markdown content compatable with Confluence
