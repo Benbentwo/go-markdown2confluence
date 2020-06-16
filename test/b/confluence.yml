@@ -1,0 +1,6 @@
+parent_config:
+  - .github/confluence.yml
+
+title: B
+source:
+  - test/b/README.md

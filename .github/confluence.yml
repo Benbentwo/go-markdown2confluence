@@ -5,8 +5,10 @@ title: demo-confluence-yaml
 #ancestor:
 debug: false
 #since:
-username: NOT_A_USER # should be overridden by confluence-ep.yml
-endpoint: golang-markdown-to-confluence.atlassian.net/wiki
+username: ben.smith.developer@gmail.com
+endpoint: https://golang-markdown-to-confluence.atlassian.net/wiki
 parent: "Demo Parent"
 source:
   - README.md
+parent_config:
+  - confluence-ep.yml # run directory
