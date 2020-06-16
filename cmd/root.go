@@ -45,6 +45,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("loading config: %s", err)
 		}
+
 		m.SourceEnvironmentVariables()
 		// Validate the arguments
 		err = m.Validate()

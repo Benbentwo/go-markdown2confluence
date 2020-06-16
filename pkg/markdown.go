@@ -45,7 +45,7 @@ type Markdown2Confluence struct {
 	SourceMarkdown []string `json:"source"`
 
 	client         *confluence.Client
-	LoadFromConfig *[]string
+	LoadFromConfig *[]string `json:"parent_config"`
 	DryRun         bool
 }
 
@@ -56,25 +56,36 @@ func (m *Markdown2Confluence) LoadConfig() error {
 	inputs = append(inputs, DefaultConfigFile)
 	for i := len(inputs) - 1; i >= 0; i-- {
 		fileName := inputs[i]
-
-		if fileName != "" {
-			exists, err := util.FileExists(fileName)
-			if err != nil {
-				return fmt.Errorf("Could not check if file exists %s due to %s", fileName, err)
-			}
-			if exists {
-				data, err := ioutil.ReadFile(fileName)
-				if err != nil {
-					return fmt.Errorf("Failed to load file %s due to %s", fileName, err)
-				}
-				err = yaml.Unmarshal(data, m)
-				if err != nil {
-					return fmt.Errorf("Failed to unmaxrshal YAML file %s due to %s", fileName, err)
-				}
-			}
+		m.LoadSingleConfig(fileName) // get parents
+		parent_configs := *m.LoadFromConfig
+		for i := len(parent_configs) - 1; i >= 0; i-- {
+			parentFileName := inputs[i]
+			m.LoadSingleConfig(parentFileName)
 		}
+		m.LoadSingleConfig(fileName)
 	}
 
+	return nil
+}
+
+func (m *Markdown2Confluence) LoadSingleConfig(fileName string) error {
+	if fileName == "" {
+		return fmt.Errorf("no file passed to load")
+	}
+	exists, err := util.FileExists(fileName)
+	if err != nil {
+		return fmt.Errorf("Could not check if file exists %s due to %s", fileName, err)
+	}
+	if exists {
+		data, err := ioutil.ReadFile(fileName)
+		if err != nil {
+			return fmt.Errorf("Failed to load file %s due to %s", fileName, err)
+		}
+		err = yaml.Unmarshal(data, m)
+		if err != nil {
+			return fmt.Errorf("Failed to unmaxrshal YAML file %s due to %s", fileName, err)
+		}
+	}
 	return nil
 }
 
