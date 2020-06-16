@@ -47,6 +47,7 @@ type Markdown2Confluence struct {
 	client         *confluence.Client
 	LoadFromConfig *[]string `json:"parent_config"`
 	DryRun         bool
+	RunAllFiles    string
 }
 
 const DefaultConfigFile = `./.github/confluence.yml`
@@ -87,6 +88,63 @@ func (m *Markdown2Confluence) LoadSingleConfig(fileName string) error {
 		}
 	}
 	return nil
+}
+
+func (m *Markdown2Confluence) RunAllConfigs() map[string]error {
+	var mapFileToError = make(map[string]error, 0)
+	targetFile := m.RunAllFiles
+	filepath.Walk(".",
+		func(path string, info os.FileInfo, err error) error {
+			if info.Name() == targetFile {
+				fmt.Println("adding: ", path)
+				mapFileToError[path] = err
+			}
+			return nil
+		})
+
+	for file, _ := range mapFileToError {
+		var loadConfig = make([]string, 0)
+		loadConfig = append(loadConfig, file)
+		individualConfig := &Markdown2Confluence{}
+		if m.DryRun {
+			individualConfig.DryRun = true
+		}
+		individualConfig.LoadFromConfig = &loadConfig
+
+		fmt.Printf("Running config for %s\n", util.ColorStatus(file))
+		err := individualConfig.runConfig()
+		mapFileToError[file] = err
+	}
+
+	return mapFileToError
+}
+
+func (m *Markdown2Confluence) runConfig() error {
+	err := m.LoadConfig()
+	if err != nil {
+		return err
+	}
+	m.SourceEnvironmentVariables()
+	// Validate the arguments
+	err = m.Validate()
+	if err != nil {
+		return err
+	}
+
+	if m.DryRun {
+		m.PrintMe()
+		return nil
+	}
+	errors := m.Run()
+	for _, err := range errors {
+		fmt.Println()
+		fmt.Println(err)
+	}
+	if len(errors) > 0 {
+		return errors[0]
+	}
+	return nil
+
 }
 
 func (m *Markdown2Confluence) PrintMe() {

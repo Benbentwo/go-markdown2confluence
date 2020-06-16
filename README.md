@@ -1,6 +1,32 @@
 # markdown2confluence
 Push markdown files to Confluence Cloud
 
+## Customization
+
+ - `--all <string>` this option allows you to run ALL files named <string>
+ 
+     example:
+     ```bash
+    markdown2confluence --all "confluence.yml"
+    ```
+ - `--dry-run` print off your loaded configs for a given set of configs (combining into one) or using the `--all` to see what each file will run. 
+ 
+ Example:
+ Running `markdown2confluence --all "confluence.yml"` 
+ gives 
+ ```bash
+adding:  .github/confluence.yml
+adding:  test/a/confluence.yml
+adding:  test/b/confluence.yml
+Running config for .github/confluence.yml
+Demo Parent/demo-confluence-yaml: https://golang-markdown-to-confluence.atlassian.net/wiki/...
+```
+
+with the following pages created
+
+![pageDir](./docs/pageDir.png)
+![pageCreated](./docs/createdPageA.png)
+
 ## Installation
 
 Download the [latest release](https://github.com/Benbentwo/go-markdown2confluence/releases) and add the binary in your local `PATH`

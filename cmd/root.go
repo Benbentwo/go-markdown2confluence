@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/Benbentwo/utils/util"
 	"log"
 	"os"
 
@@ -23,6 +24,8 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&m.DryRun, "dry-run", "", false, "Print config but don't actually run anything first, Warning, prints PW to console")
 	m.LoadFromConfig = rootCmd.PersistentFlags().StringArrayP("load-from", "l", nil, "Set the files to load configuration from, prioritizes first input over others")
 	m.SourceEnvironmentVariables()
+
+	rootCmd.PersistentFlags().StringVarP(&m.RunAllFiles, "all", "", "", "run all files matching a string name")
 	rootCmd.Flags().SetInterspersed(false)
 	rootCmd.PersistentFlags().StringVarP(&m.Space, "space", "s", "", "Space in which page should be created")
 	rootCmd.PersistentFlags().StringVarP(&m.Username, "username", "u", "", "Confluence username. (Alternatively set CONFLUENCE_USERNAME environment variable)")
@@ -40,12 +43,30 @@ var rootCmd = &cobra.Command{
 	Use:   "markdown2confluence",
 	Short: "Push markdown files to Confluence Cloud",
 	Run: func(rootCmd *cobra.Command, args []string) {
-		m.SourceMarkdown = args
+		if m.RunAllFiles != "" {
+			errs := m.RunAllConfigs()
+			errorsFound := false
+			for path, err := range errs {
+				if err != nil {
+					fmt.Printf(util.ColorError("ERROR: ")+"config %s failed, cause: %s \n", path, err)
+					errorsFound = true
+				}
+			}
+			if errorsFound {
+				os.Exit(1)
+			} else {
+				return
+			}
+		}
+
 		err := m.LoadConfig()
 		if err != nil {
 			log.Fatalf("loading config: %s", err)
 		}
 
+		if len(args) > 0 {
+			m.SourceMarkdown = args
+		}
 		m.SourceEnvironmentVariables()
 		// Validate the arguments
 		err = m.Validate()
