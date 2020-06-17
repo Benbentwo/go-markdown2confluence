@@ -112,14 +112,14 @@ func (m *Markdown2Confluence) RunAllConfigs() map[string]error {
 		individualConfig.LoadFromConfig = &loadConfig
 
 		fmt.Printf("Running config for %s\n", util.ColorStatus(file))
-		err := individualConfig.runConfig()
+		err := individualConfig.DefaultRun()
 		mapFileToError[file] = err
 	}
 
 	return mapFileToError
 }
 
-func (m *Markdown2Confluence) runConfig() error {
+func (m *Markdown2Confluence) DefaultRun() error {
 	err := m.LoadConfig()
 	if err != nil {
 		return err
