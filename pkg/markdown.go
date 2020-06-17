@@ -109,6 +109,11 @@ func (m *Markdown2Confluence) RunAllConfigs() map[string]error {
 		if m.DryRun {
 			individualConfig.DryRun = true
 		}
+		individualConfig.Endpoint = m.Endpoint
+		individualConfig.Password = m.Password
+		individualConfig.Username = m.Username
+		individualConfig.Space = m.Space
+
 		individualConfig.LoadFromConfig = &loadConfig
 
 		fmt.Printf("Running config for %s\n", util.ColorStatus(file))

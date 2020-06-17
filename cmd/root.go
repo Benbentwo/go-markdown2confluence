@@ -21,25 +21,25 @@ func init() {
 	// 		2. Passed config.yml
 	// 		3. Env Vars
 	// 		4. Override flags from CLI
-	rootCmd.PersistentFlags().BoolVarP(&m.DryRun, "dry-run", "", false, "Print config but don't actually run anything first, Warning, prints PW to console")
-	m.LoadFromConfig = rootCmd.PersistentFlags().StringArrayP("load-from", "l", nil, "Set the files to load configuration from, prioritizes first input over others")
+	RootCmd.PersistentFlags().BoolVarP(&m.DryRun, "dry-run", "", false, "Print config but don't actually run anything first, Warning, prints PW to console")
+	m.LoadFromConfig = RootCmd.PersistentFlags().StringArrayP("load-from", "l", nil, "Set the files to load configuration from, prioritizes first input over others")
 	m.SourceEnvironmentVariables()
 
-	rootCmd.PersistentFlags().StringVarP(&m.RunAllFiles, "all", "", "", "run all files matching a string name")
-	rootCmd.Flags().SetInterspersed(false)
-	rootCmd.PersistentFlags().StringVarP(&m.Space, "space", "s", "", "Space in which page should be created")
-	rootCmd.PersistentFlags().StringVarP(&m.Username, "username", "u", "", "Confluence username. (Alternatively set CONFLUENCE_USERNAME environment variable)")
-	rootCmd.PersistentFlags().StringVarP(&m.Password, "password", "p", "", "Confluence password. (Alternatively set CONFLUENCE_PASSWORD environment variable)")
-	rootCmd.PersistentFlags().StringVarP(&m.Endpoint, "endpoint", "e", pkg.DefaultEndpoint, "Confluence endpoint. (Alternatively set CONFLUENCE_ENDPOINT environment variable)")
-	rootCmd.PersistentFlags().StringVar(&m.Parent, "parent", "", "Optional parent page to next content under")
-	rootCmd.PersistentFlags().BoolVarP(&m.Debug, "debug", "d", false, "Enable debug logging")
-	rootCmd.PersistentFlags().IntVarP(&m.Since, "modified-since", "m", 0, "Only upload files that have modifed in the past n minutes")
-	rootCmd.PersistentFlags().StringVarP(&m.Title, "title", "t", "", "Set the page title on upload (defaults to filename without extension)")
+	RootCmd.PersistentFlags().StringVarP(&m.RunAllFiles, "all", "", "", "run all files matching a string name")
+	RootCmd.Flags().SetInterspersed(false)
+	RootCmd.PersistentFlags().StringVarP(&m.Space, "space", "s", "", "Space in which page should be created")
+	RootCmd.PersistentFlags().StringVarP(&m.Username, "username", "u", "", "Confluence username. (Alternatively set CONFLUENCE_USERNAME environment variable)")
+	RootCmd.PersistentFlags().StringVarP(&m.Password, "password", "p", "", "Confluence password. (Alternatively set CONFLUENCE_PASSWORD environment variable)")
+	RootCmd.PersistentFlags().StringVarP(&m.Endpoint, "endpoint", "e", pkg.DefaultEndpoint, "Confluence endpoint. (Alternatively set CONFLUENCE_ENDPOINT environment variable)")
+	RootCmd.PersistentFlags().StringVar(&m.Parent, "parent", "", "Optional parent page to next content under")
+	RootCmd.PersistentFlags().BoolVarP(&m.Debug, "debug", "d", false, "Enable debug logging")
+	RootCmd.PersistentFlags().IntVarP(&m.Since, "modified-since", "m", 0, "Only upload files that have modifed in the past n minutes")
+	RootCmd.PersistentFlags().StringVarP(&m.Title, "title", "t", "", "Set the page title on upload (defaults to filename without extension)")
 
 }
 
-// rootCmd represents the base command when called without any subcommands
-var rootCmd = &cobra.Command{
+// RootCmd represents the base command when called without any subcommands
+var RootCmd = &cobra.Command{
 	Use:   "markdown2confluence",
 	Short: "Push markdown files to Confluence Cloud",
 	Run: func(rootCmd *cobra.Command, args []string) {
@@ -90,12 +90,12 @@ var rootCmd = &cobra.Command{
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+// This is called by main.main(). It only needs to happen once to the RootCmd.
 func Execute(version string) {
-	rootCmd.Version = version
-	rootCmd.SetVersionTemplate(`{{with .Name}}{{printf "%s " .}}{{end}}{{printf "%s" .Version}}
+	RootCmd.Version = version
+	RootCmd.SetVersionTemplate(`{{with .Name}}{{printf "%s " .}}{{end}}{{printf "%s" .Version}}
 `)
-	if err := rootCmd.Execute(); err != nil {
+	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
