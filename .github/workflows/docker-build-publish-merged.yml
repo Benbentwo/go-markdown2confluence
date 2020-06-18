@@ -1,0 +1,97 @@
+name: Merged
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Go environment
+        uses: actions/setup-go@v2.0.3
+        with:
+          go-version: 1.14
+
+      - name: Checkout
+        uses: actions/checkout@v1
+
+
+      - name: Pull request merged
+        id: get-release-type
+        run: |
+          if [[ "${{github.event.pull_request.state}}" == "closed" ]] || [[ "${{github.event.pull_request.merged}}" == "true" ]]; then
+            echo "##[set-output name=merged;]true"
+            echo '${{toJson(github.event.pull_request)}}' > data.json
+            jq -r '.labels[] | .name' data.json > labels.txt
+            while IFS= read -r name; do
+              echo "Looking at label: \"${name}\""
+              if [[ ${name} =~ [rR]elease\ ([A-Za-z0-9_]+) ]] ; then
+                release_type=${BASH_REMATCH[1]}
+                echo "ReleaseType set to: \"${release_type}\""
+                if echo $release_type | grep -iqF patch; then
+                  echo "Setting to Patch"
+                  echo "##[set-output name=release-type;]patch"
+                  echo "##[set-output name=release-command;]-p"
+                elif echo $release_type | grep -iqF minor; then
+                  echo "Setting to Minor"
+                  echo "##[set-output name=release-type;]minor"
+                  echo "##[set-output name=release-command;]-m"
+                elif echo $release_type | grep -iqF major; then
+                  echo "Setting to Major"
+                  echo "##[set-output name=release-type;]major"
+                  echo "##[set-output name=release-command;]-M"
+                else
+                  echo "Not sure what release this is, defaulting to patch"
+                  echo "##[set-output name=release-type;]patch"
+                  echo "##[set-output name=release-command;]-p"
+                fi
+              fi
+            done < labels.txt
+          else
+            echo "Was not started by pull request, setting to patch"
+            echo "##[set-output name=release-type;]patch"
+            echo "##[set-output name=release-command;]-p"
+          fi
+
+      # https://github.com/Benbentwo/increment-semver
+      - name: Increment Step Patch
+        id: increment-semver-patch
+        uses: Benbentwo/increment-semver@master
+        with:
+          version-level: "${{steps.get-release-type.outputs.release-command}}"
+
+      - name: Make local Binaries
+        run: |
+          export VERSION=${{steps.increment-semver-patch.outputs.version}}
+          make build
+
+      - name: Publish to Docker Hub
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: bensmithdeveloper/markdown2confluence
+          username: bensmithdeveloper
+          password: ${{ secrets.DOCKER_HUB_API }}
+          tags: "latest,${{ steps.increment-semver-patch.outputs.version }}"
+
+      # https://github.com/marketplace/actions/create-a-release
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{steps.increment-semver-patch.outputs.version}}
+          release_name: ${{steps.increment-semver-patch.outputs.version}}
+          draft: false
+          prerelease: false
+
+# https://github.com/svenstaro/upload-release-action
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v1-release
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/*
+          tag: ${{steps.increment-semver-patch.outputs.version}}
+          file_glob: true
