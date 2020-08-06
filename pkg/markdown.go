@@ -212,7 +212,7 @@ func (m Markdown2Confluence) Validate() error {
 	if m.Endpoint == DefaultEndpoint {
 		return fmt.Errorf("--endpoint is not defined")
 	}
-	if len(m.SourceMarkdown) == 0 {
+	if len(m.SourceMarkdown) == 0 && len(m.Sources) == 0 {
 		return fmt.Errorf("please pass a markdown file or directory of markdown files")
 	}
 	if len(m.SourceMarkdown) > 1 && m.Title != "" {
