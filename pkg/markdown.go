@@ -377,7 +377,7 @@ func (m *Markdown2Confluence) Run() []error {
 			}
 
 			if source.Parent != "" {
-				md.Parents = append([]string{source.Parent}, md.Parents...)
+				md.Parents = append([]string{m.Parent, source.Parent}, md.Parents...)
 				md.Parents = deleteEmpty(md.Parents)
 			}
 
