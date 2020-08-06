@@ -30,19 +30,26 @@ const (
 	Parallelism = 5
 )
 
+type MarkdownConverter struct {
+	Parent         string `json:"parent"`
+	SourceMarkdown string `json:"source"`
+	Title          string `json:"title"`
+}
+
 // Markdown2Confluence stores the settings for each run
 type Markdown2Confluence struct {
-	Space          string   `json:"space"`
-	Title          string   `json:"title"`
-	File           string   `json:"file"`
-	Ancestor       string   `json:"ancestor"`
-	Debug          bool     `json:"debug"`
-	Since          int      `json:"since"`
-	Username       string   `json:"username"`
-	Password       string   `json:"password"`
-	Endpoint       string   `json:"endpoint"`
-	Parent         string   `json:"parent"`
-	SourceMarkdown []string `json:"source"`
+	Space          string              `json:"space"`
+	Title          string              `json:"title"`
+	File           string              `json:"file"`
+	Ancestor       string              `json:"ancestor"`
+	Debug          bool                `json:"debug"`
+	Since          int                 `json:"since"`
+	Username       string              `json:"username"`
+	Password       string              `json:"password"`
+	Endpoint       string              `json:"endpoint"`
+	Parent         string              `json:"parent"`
+	SourceMarkdown []string            `json:"source"` // TODO deprecate
+	Sources        []MarkdownConverter `json:"sources"`
 
 	client         *confluence.Client
 	LoadFromConfig *[]string `json:"parent_config"`
@@ -296,9 +303,88 @@ func (m *Markdown2Confluence) Run() []error {
 
 			markdownFiles = append(markdownFiles, md)
 		}
-
 	}
 
+	for _, source := range m.Sources {
+		f := source.SourceMarkdown
+
+		file, err := os.Open(f)
+		defer file.Close()
+		if err != nil {
+			return []error{fmt.Errorf("Error opening file %s", err)}
+		}
+
+		stat, err := file.Stat()
+		if err != nil {
+			return []error{fmt.Errorf("Error reading file meta %s", err)}
+		}
+
+		var md MarkdownFile
+
+		if stat.IsDir() {
+
+			// prevent someone from accidently uploading everything under the same title
+			if m.Title != "" {
+				return []error{fmt.Errorf("--title not supported for directories")}
+			}
+
+			err := filepath.Walk(f,
+				func(path string, info os.FileInfo, err error) error {
+					if err != nil {
+						return err
+					}
+
+					if strings.HasSuffix(path, ".md") {
+
+						// Only include this file if it was modified m.Since minutes ago
+						if m.Since != 0 {
+							if info.ModTime().Unix() < now.Add(time.Duration(m.Since*-1)*time.Minute).Unix() {
+								if m.Debug {
+									fmt.Printf("skipping %s: last modified %s\n", info.Name(), info.ModTime())
+								}
+								return nil
+							}
+						}
+
+						md := MarkdownFile{
+							Path:    path,
+							Parents: deleteFromSlice(strings.Split(filepath.Dir(strings.TrimPrefix(filepath.ToSlash(path), filepath.ToSlash(f))), "/"), "."),
+							Title:   strings.TrimSuffix(filepath.Base(path), ".md"),
+						}
+
+						if source.Parent != "" {
+							md.Parents = append([]string{m.Parent}, md.Parents...)
+							md.Parents = deleteEmpty(md.Parents)
+						}
+
+						markdownFiles = append(markdownFiles, md)
+
+					}
+					return nil
+				})
+			if err != nil {
+				return []error{fmt.Errorf("Unable to walk path: %s", f)}
+			}
+
+		} else {
+			md = MarkdownFile{
+				Path:  f,
+				Title: source.Title,
+			}
+
+			if md.Title == "" {
+				md.Title = strings.TrimSuffix(filepath.Base(f), ".md")
+			}
+
+			if source.Parent != "" {
+				md.Parents = append([]string{source.Parent}, md.Parents...)
+				md.Parents = deleteEmpty(md.Parents)
+			}
+
+			markdownFiles = append(markdownFiles, md)
+		}
+
+	}
 	var (
 		wg    = sync.WaitGroup{}
 		queue = make(chan MarkdownFile)
